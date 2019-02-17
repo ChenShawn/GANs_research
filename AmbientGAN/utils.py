@@ -28,7 +28,7 @@ def show_all_variables():
 def lrelu(input_op, leak=0.2, name='linear'):
     return tf.maximum(input_op, leak*input_op, name=name)
 
-def conv2d(input_op, n_out, name, kh=5, kw=5, dh=2, dw=2):
+def conv2d(input_op, n_out, name, kh=5, kw=5, dh=2, dw=2, use_bias=True):
     n_in = input_op.get_shape()[-1].value
 
     with tf.variable_scope(name):
@@ -37,8 +37,11 @@ def conv2d(input_op, n_out, name, kh=5, kw=5, dh=2, dw=2):
                                  dtype=tf.float32,
                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
         conv = tf.nn.conv2d(input_op, kernel, (1, dh, dw, 1), padding='SAME')
-        biases = tf.get_variable(name='biases', shape=(n_out), initializer=tf.constant_initializer(0.0))
-        return tf.nn.bias_add(conv, biases)
+        if use_bias:
+            biases = tf.get_variable(name='biases', shape=(n_out), initializer=tf.constant_initializer(0.0))
+            return tf.nn.bias_add(conv, biases)
+        else:
+            return conv
 
 def deconv2d(input_op, output_shape, kh=5, kw=5, dh=2, dw=2, name='deconv', bias_init=0.0):
     n_in = input_op.get_shape()[-1].value
